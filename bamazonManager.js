@@ -1,24 +1,6 @@
-import { ADDRGETNETWORKPARAMS } from 'dns';
-
 // ### Challenge #2: Manager View (Next Level)
 
 // * Create a new Node application called `bamazonManager.js`. Running this application will:
-
-//   * List a set of menu options:
-
-//     * View Products for Sale
-
-//     * View Low Inventory
-
-//     * Add to Inventory
-
-//     * Add New Product
-
-
-
-
-//   * If a manager selects `Add New Product`, it should allow the manager to add a completely new product to the store.
-
 
 var inquirer = require('inquirer');
 var mysql = require("mysql");
@@ -39,12 +21,12 @@ var connection = mysql.createConnection({
 connection.connect(function (err) {
     if (err) throw err;
     console.log("connected as id " + connection.threadId);
-    afterConnection();
+    manager();
 });
 
 
 // connection.end();
-function manager(res) {
+function manager() {
     inquirer.prompt([
         {
             type: "list",
@@ -52,9 +34,9 @@ function manager(res) {
             message: "Managerial Duty",
             choices: ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add New Product"]
         },
-    ]).then(function (manager) {
+    ]).then(function (answer) {
 
-        switch (manager) {
+        switch (answer.manager) {
             case "View Products for Sale":
                 viewSale();
                 break;
@@ -75,18 +57,23 @@ function viewSale() {
     connection.query("SELECT * FROM products", function (err, res) {
         if (err) throw err;
         for (var i = 0; i < res.length; i++) {
-            console.log(res[i].product_name + " | " + "$" + res[i].price);
+            console.log();
+            console.log("---------------------------------------------");
+            console.log(res[i].item_id + " | " + res[i].product_name + " | " + res[i].department_name + " | $" + res[i].price + " | " + res[i].stock_quantity);
         }
     });
+    manager();
 }
 //   * If a manager selects `View Low Inventory`, then it should list all items with an inventory count lower than five.
 function lowInvientory() {
-    connection.query("SELECT * FROM products", function (err, res) {
+    var query = "SELECT * FROM products WHERE stock_quantity BETWEEN ? AND ?";
+    connection.query(query, [0, 5], function (err, res) {
         if (err) throw err;
         for (var i = 0; i < res.length; i++) {
             console.log(res[i].product_name + " | " + "$" + res[i].price);
         }
     });
+    manager();
 }
 //   * If a manager selects `Add to Inventory`, your app should display a prompt that will let the manager "add more" of any item currently in the store.
 function addInventory() {
@@ -100,29 +87,64 @@ function addInventory() {
         {
             name: "amount",
             message: "How many?"
-          }
+        }
     ]).then(function (answer) {
-        var chosenItem;
-        for (var i = 0; i < res.length; i++) {
-          if (res[i].product_name === answer.choice) {
-            chosenItem = res[i];
-          }
-        }
-        if (chosenItem.stock_quantity >= answer.amount) {
-          completeOrder(chosenItem,answer);
-        } else {
-          console.log("Sorry, we only have " + chosenItem.stock_quantity + " " +
-            chosenItem.product_name + "s in stock");
-            purchaseRequest(res);
-        }
-      });
-    }
+        var productAdjust = answer.more;
+        var newStock = parseInt(answer.amount);
+        connection.query(
+            "UPDATE products SET ? WHERE ?",
+            [
+                {
+                    stock_quantity: stock_quantity + newStock
+                },
+                {
+                    product_name: answer.more
+                }
+            ],
+            function (error) {
+                if (error) throw err;
+                console.log("Update Complete!");
+
+            }
+        );
+    });
+};
+
+
+
+
+
+
 //   * If a manager selects `Add New Product`, it should allow the manager to add a completely new product to the store.
 function addNew() {
-    connection.query("SELECT * FROM products", function (err, res) {
-        if (err) throw err;
-        for (var i = 0; i < res.length; i++) {
-            console.log(res[i].product_name + " | " + "$" + res[i].price);
+    console.log("Inserting a new product...\n");
+    var query = connection.query(
+        "INSERT INTO products SET ?",
+        {
+            product_name: "",
+            department_name: "",
+            price: "",
+            stock_quantity: ""
+        },
+        function (err, res) {
+            console.log(res.affectedRows + " product inserted!\n");
+            // Call updateProduct AFTER the INSERT completes
+            updateProduct();
         }
-    });
-}
+    )
+    console.log(query.sql);
+};
+    // var query = "SELECT * FROM products WHERE ?";
+    // connection.query(query, { product_name: answer.more }, function (err, res) {
+    //     if (err) throw err;
+    //     var chosenItem;
+    //     for (var i = 0; i < res.length; i++) {
+    //         if (res[i].product_name === answer.more) {
+    //             chosenItem = res[i];
+    //         }
+    //     }
+
+    //     console.log("previous stock ammount: " + chosenItem.stock_quantity);
+    //     var newStock = parseInt(chosenItem.stock_quantity) + parseInt(answer.amount);
+    //     console.log("new Stock " + newStock);
+    //     //update
