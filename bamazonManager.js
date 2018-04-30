@@ -95,15 +95,17 @@ function addInventory() {
             "UPDATE products SET ? WHERE ?",
             [
                 {
-                    stock_quantity: stock_quantity + newStock
+                    stock_quantity: newStock
                 },
                 {
                     product_name: answer.more
                 }
             ],
-            function (error) {
+            function (error, res) {
                 if (error) throw err;
-                console.log("Update Complete!");
+                console.log(res.stock_quanitity);
+                viewSale(); 
+                manager();
 
             }
         );
@@ -117,22 +119,57 @@ function addInventory() {
 
 //   * If a manager selects `Add New Product`, it should allow the manager to add a completely new product to the store.
 function addNew() {
-    console.log("Inserting a new product...\n");
-    var query = connection.query(
-        "INSERT INTO products SET ?",
+    inquirer.prompt([
         {
-            product_name: "",
-            department_name: "",
-            price: "",
-            stock_quantity: ""
+            type: "input",
+            name: "product_name",
+            message: "Product Name"
         },
-        function (err, res) {
-            console.log(res.affectedRows + " product inserted!\n");
-            // Call updateProduct AFTER the INSERT completes
-            updateProduct();
-        }
-    )
-    console.log(query.sql);
+        {
+            type: "input",
+            name: "department_name",
+            message: "Department Name"
+        },
+        {
+            type: "input",
+            name: "price",
+            message: "Price",
+            validate: function(value) {
+                if (isNaN(value) === false) {
+                  return true;
+                }
+                return false;
+              }
+        },
+        {
+            type: "input",
+            name: "stock_quantity",
+            message: "Amount of Stock",
+            validate: function(value) {
+                if (isNaN(value) === false) {
+                  return true;
+                }
+                return false;
+              }
+        },
+    ]).then(function (answer) {
+        var newPrice= parseInt(answer.price)
+        var query = connection.query(
+            "INSERT INTO products SET ?",
+            {
+                product_name: answer.product_name,
+                department_name: answer.department_name,
+                price: newPrice,
+                stock_quantity: answer.stock_quantity
+            },
+            function (err, res) {
+                // console.log(res.affectedRows + " product inserted!\n");
+                viewSale(); 
+                manager();
+            }
+        )
+        // console.log(query.sql);
+    });
 };
     // var query = "SELECT * FROM products WHERE ?";
     // connection.query(query, { product_name: answer.more }, function (err, res) {
