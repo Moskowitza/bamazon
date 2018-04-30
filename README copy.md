@@ -1,2 +1,0 @@
-# WebStore
- Amazon-like storefront
