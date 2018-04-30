@@ -1,0 +1,23 @@
+{
+  "name": "webstore",
+  "version": "0.1.0",
+  "description": "web_store package installer",
+  "main": "webStore.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Moskowitza/WebStore.git"
+  },
+  "author": "Aaron Moskowitz",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Moskowitza/WebStore/issues"
+  },
+  "homepage": "https://github.com/Moskowitza/WebStore#readme",
+  "dependencies": {
+    "inquirer": "^5.2.0",
+    "mysql": "^2.15.0"
+  }
+}
