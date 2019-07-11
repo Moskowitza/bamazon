@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/Moskowitza/WebStore#readme",
   "dependencies": {
-    "inquirer": "^5.2.0",
+    "inquirer": "^6.5.0",
     "mysql": "^2.16.0",
     "npm": "^6.7.0"
   },
